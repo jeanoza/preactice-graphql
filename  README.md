@@ -1,4 +1,4 @@
-## Simple Express Server using Graphql
+## Simple Apollo Server using Graphql + NodeJS
 
 ### Why GraphQL not RestAPI?
 
