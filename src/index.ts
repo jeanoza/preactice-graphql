@@ -1,20 +1,8 @@
-import express, { Express, Request, Response } from "express";
 import { ApolloServer, gql } from "apollo-server";
 import dotenv from "dotenv";
+import { Tweet, User, tweets, users } from "./mockData";
+import { DeleteTweet, GetTweet, PostTweet } from "./tweet.dto";
 dotenv.config();
-
-//#region mock data
-const tweets = [
-  {
-    id: "1",
-    text: "Hello World",
-  },
-  {
-    id: "2",
-    text: "Bye World",
-  },
-];
-//#endregion
 
 //#region GraphQL Models
 /**
@@ -30,16 +18,17 @@ const tweets = [
 const typeDefs = gql`
   type User {
     id: ID!
-    name: String!
     firstName: String!
     lastName: String!
+    fullName: String!
   }
   type Tweet {
     id: ID!
     text: String!
-    author: User
+    author: User!
   }
   type Query {
+    allUsers: [User!]!
     allTweets: [Tweet!]!
     tweet(id: ID!): Tweet
   }
@@ -50,21 +39,12 @@ const typeDefs = gql`
 `;
 //#endregion
 
-//#region Dtos
-interface GetTweet {
-  id: string;
-}
-
-interface PostTweet {
-  text: string;
-  userId: string;
-}
-interface DeleteTweet extends GetTweet {}
-//#endregion
-
 //#region Resolvers
 const resolvers = {
   Query: {
+    allUsers: () => {
+      return users;
+    },
     allTweets: () => {
       return tweets;
     },
@@ -77,6 +57,7 @@ const resolvers = {
       const tweet = {
         id: String(tweets.length + 1),
         text,
+        userId,
       };
       tweets.push(tweet);
       return tweet;
@@ -87,6 +68,16 @@ const resolvers = {
       if (tweetIndex === -1) return false;
       tweets.splice(tweetIndex, 1);
       return true;
+    },
+  },
+  User: {
+    fullName: ({ firstName, lastName }: User) => {
+      return `${firstName} ${lastName}`;
+    },
+  },
+  Tweet: {
+    author: ({ userId }: Tweet) => {
+      return users.find((user) => user.id === userId);
     },
   },
 };
